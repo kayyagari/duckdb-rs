@@ -796,6 +796,14 @@ mod test {
         stmt.execute([])?;
         assert_eq!(stmt.column_count(), 2);
         assert_eq!(stmt.column_names(), vec!["a", "b"]);
+
+        let mut stmt = db.prepare("SELECT * FROM foo")?;
+        let mut rows = stmt.query([])?;
+        let column_names = rows.get_column_names();
+        assert!(column_names.is_some());
+        let column_names = column_names.unwrap();
+        assert_eq!(column_names.len(), 1);
+        assert_eq!(column_names, vec!["x"]);
         Ok(())
     }
 

@@ -122,6 +122,26 @@ impl<'stmt> Rows<'stmt> {
             None => Err(Error::QueryReturnedNoRows),
         }
     }
+
+    /// Get all the column names projected in the query statement
+    /// This method was added to solve the mutable-immutable borrow error
+    ///
+    /// ```ignore
+    /// use duckdb::Connection;
+    /// fn rows_to_json(conn: &Connection) {
+    ///  let mut stmt = conn.prepare("SELECT * FROM foo").unwrap();
+    ///  let mut rows = stmt.query([]).unwrap(); // mutable borrow occurs here
+    ///  let column_names = stmt.column_names(); // immutable borrow occurs here
+    ///  while let Ok(row) = rows.next() {} // mutable borrow later used here
+    /// }
+    /// ```
+    ///
+    pub fn get_column_names(&self) -> Option<Vec<String>> {
+        if let Some(stmt) = self.stmt {
+            return Some(stmt.column_names());
+        }
+        None
+    }
 }
 
 /// `F` is used to transform the _streaming_ iterator into a _fallible_
